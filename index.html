@@ -192,11 +192,10 @@
                 return;
             }
 
-            const popupConfirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor}. Please take into consideration that any subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
+            const confirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor}. Please take into consideration that any subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
 
-            if (!confirm(popupConfirmationText)) return;
+            if (!confirm(confirmationText)) return;
 
-            const emailConfirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor} and am aware that subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
             const signatureDataURL = canvas.toDataURL("image/png");
 
             const formData = new FormData();
