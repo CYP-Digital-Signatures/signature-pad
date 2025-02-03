@@ -106,43 +106,59 @@
     <script>
         const canvas = document.getElementById("signature-pad");
         const ctx = canvas.getContext("2d");
-
         let isDrawing = false;
 
-        function resizeCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 200;
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function getCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            if (event.touches) {
+                return {
+                    x: event.touches[0].clientX - rect.left,
+                    y: event.touches[0].clientY - rect.top
+                };
+            } else {
+                return {
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top
+                };
+            }
         }
 
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-
         function startDrawing(event) {
+            event.preventDefault();
             isDrawing = true;
+            const { x, y } = getCoordinates(event);
             ctx.beginPath();
-            ctx.moveTo(event.offsetX, event.offsetY);
+            ctx.moveTo(x, y);
         }
 
         function draw(event) {
             if (!isDrawing) return;
-            ctx.lineTo(event.offsetX, event.offsetY);
+            event.preventDefault();
+            const { x, y } = getCoordinates(event);
+            ctx.lineTo(x, y);
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
             ctx.lineCap = "round";
             ctx.stroke();
         }
 
-        function stopDrawing() {
+        function stopDrawing(event) {
+            event.preventDefault();
             isDrawing = false;
             ctx.closePath();
         }
 
+        // Mouse Events
         canvas.addEventListener("mousedown", startDrawing);
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", stopDrawing);
         canvas.addEventListener("mouseout", stopDrawing);
+
+        // Touch Events (Fix for Mobile)
+        canvas.addEventListener("touchstart", startDrawing);
+        canvas.addEventListener("touchmove", draw);
+        canvas.addEventListener("touchend", stopDrawing);
+        canvas.addEventListener("touchcancel", stopDrawing);
 
         document.getElementById("clear").addEventListener("click", () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -184,13 +200,7 @@
                 body: formData
             })
             .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert("Error: " + data.error);
-                } else {
-                    alert("Signature emailed successfully!");
-                }
-            })
+            .then(data => alert(data.message || "Error sending email."))
             .catch(error => console.error("Error:", error));
         });
     </script>
