@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signature Capture</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/literallycanvas/0.4.14/literallycanvas.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/literallycanvas/0.4.14/literallycanvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,9 +23,12 @@
             width: 100%;
             max-width: 350px;
         }
-        .literally {
+        canvas {
+            border: 2px solid black;
             width: 100%;
             height: 200px;
+            background-color: white;
+            touch-action: none;
         }
     </style>
 </head>
@@ -60,26 +61,77 @@
         </select>
 
         <h3>Sign Below:</h3>
-        <div class="literally" id="signature-pad"></div>
+        <canvas id="signature-pad"></canvas>
         <button id="clear">Clear</button>
         <button id="save">Save Signature</button>
     </div>
 
     <script>
-        const lc = LC.init(document.getElementById("signature-pad"), {
-            imageURLPrefix: "https://cdnjs.cloudflare.com/ajax/libs/literallycanvas/0.4.14/img",
-            backgroundColor: "white",
-            strokeWidth: 2
+        const canvas = document.getElementById("signature-pad");
+        const ctx = canvas.getContext("2d");
+
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 200;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        function startDrawing(event) {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(event.offsetX, event.offsetY);
+        }
+
+        function draw(event) {
+            if (!isDrawing) return;
+            ctx.lineTo(event.offsetX, event.offsetY);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.lineCap = "round";
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseout", stopDrawing);
+
+        // Enable drawing on touch devices
+        canvas.addEventListener("touchstart", (event) => {
+            const touch = event.touches[0];
+            const mouseEvent = new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY });
+            canvas.dispatchEvent(mouseEvent);
         });
 
-        document.getElementById("clear").addEventListener("click", () => lc.clear());
+        canvas.addEventListener("touchmove", (event) => {
+            const touch = event.touches[0];
+            const mouseEvent = new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        canvas.addEventListener("touchend", () => {
+            const mouseEvent = new MouseEvent("mouseup", {});
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        document.getElementById("clear").addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
 
         document.getElementById("save").addEventListener("click", () => {
-            if (lc.getImage().width === 0) {
-                alert("Please provide a signature first.");
-                return;
-            }
-
             const name = document.getElementById("name").value.trim();
             const subcontractor = document.getElementById("subcontractor").value;
             const level = document.getElementById("level").value;
@@ -90,8 +142,10 @@
                 return;
             }
 
-            // Get the signature as an image
-            const dataURL = lc.getImage().toDataURL();
+            // Convert canvas to image
+            const dataURL = canvas.toDataURL("image/png");
+
+            // Create a downloadable file
             const a = document.createElement("a");
             a.href = dataURL;
             a.download = `signature_${name}_${subcontractor}_${level}_${area}.png`;
