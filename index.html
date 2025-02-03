@@ -42,61 +42,6 @@
     <div class="container">
         <h2>Signature Capture</h2>
 
-        <label for="name">Full Name:</label>
-        <input type="text" id="name" placeholder="Enter your name" required>
-
-        <label for="email">Your Email:</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
-
-        <label for="subcontractor">Sub-Contractor:</label>
-        <select id="subcontractor">
-            <option value="" selected disabled>Select a sub-contractor</option>
-            <option value="ELM Dry">ELM Dry</option>
-            <option value="ELM Wet">ELM Wet</option>
-            <option value="ELM PA/EWIS">ELM PA/EWIS</option>
-            <option value="Ellis">Ellis</option>
-            <option value="Brolec">Brolec</option>
-            <option value="Nilsen LV">Nilsen LV</option>
-            <option value="Nilsen Comms">Nilsen Comms</option>
-            <option value="Decon">Decon</option>
-            <option value="Securitas">Securitas</option>
-            <option value="Schindler">Schindler</option>
-        </select>
-
-        <label for="shaft">Shaft:</label>
-        <select id="shaft">
-            <option value="" selected disabled>Select a shaft</option>
-            <option value="Latrobe">Latrobe</option>
-            <option value="Little Latrobe">Little Latrobe</option>
-            <option value="A'Beckett">A'Beckett</option>
-        </select>
-
-        <label for="level">Level:</label>
-        <select id="level">
-            <option value="" selected disabled>Select a level</option>
-            <option value="L3">L3</option>
-            <option value="L2">L2</option>
-            <option value="L1">L1</option>
-            <option value="GF">GF</option>
-            <option value="B1">B1</option>
-            <option value="B2">B2</option>
-            <option value="B3">B3</option>
-            <option value="B4">B4</option>
-            <option value="B5">B5</option>
-            <option value="B6">B6</option>
-            <option value="B7">B7</option>
-            <option value="B8">B8</option>
-        </select>
-
-        <label for="area">Area:</label>
-        <select id="area">
-            <option value="" selected disabled>Select an area</option>
-            <option value="BOH">BOH</option>
-            <option value="FOH">FOH</option>
-        </select>
-
-        <p id="confirmation-message"></p>
-
         <h3>Sign Below:</h3>
         <canvas id="signature-pad"></canvas>
         <button id="clear">Clear</button>
@@ -106,6 +51,7 @@
     <script>
         const canvas = document.getElementById("signature-pad");
         const ctx = canvas.getContext("2d");
+
         let isDrawing = false;
 
         function getCoordinates(event) {
@@ -148,17 +94,32 @@
             ctx.closePath();
         }
 
-        // Mouse Events
+        // Mouse Events (Desktop)
         canvas.addEventListener("mousedown", startDrawing);
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", stopDrawing);
         canvas.addEventListener("mouseout", stopDrawing);
 
-        // Touch Events (Fix for Mobile)
-        canvas.addEventListener("touchstart", startDrawing);
-        canvas.addEventListener("touchmove", draw);
-        canvas.addEventListener("touchend", stopDrawing);
-        canvas.addEventListener("touchcancel", stopDrawing);
+        // Touch Events (Mobile Fix)
+        canvas.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            startDrawing(event);
+        });
+
+        canvas.addEventListener("touchmove", (event) => {
+            event.preventDefault();
+            draw(event);
+        });
+
+        canvas.addEventListener("touchend", (event) => {
+            event.preventDefault();
+            stopDrawing(event);
+        });
+
+        canvas.addEventListener("touchcancel", (event) => {
+            event.preventDefault();
+            stopDrawing(event);
+        });
 
         document.getElementById("clear").addEventListener("click", () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -166,43 +127,6 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         });
 
-        document.getElementById("save").addEventListener("click", async () => {
-            const name = document.getElementById("name").value.trim();
-            const email = document.getElementById("email").value.trim();
-            const subcontractor = document.getElementById("subcontractor").value;
-            const shaft = document.getElementById("shaft").value;
-            const level = document.getElementById("level").value;
-            const area = document.getElementById("area").value;
-
-            if (!name || !email || !subcontractor || !shaft || !level || !area) {
-                alert("Please fill out all fields before sending.");
-                return;
-            }
-
-            const confirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor} and any subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
-
-            document.getElementById("confirmation-message").innerText = confirmationText;
-            document.getElementById("confirmation-message").style.display = "block";
-
-            const userConfirmed = confirm(`CONFIRM SUBMISSION:\n\n${confirmationText}\n\nClick OK to proceed or Cancel to abort.`);
-            if (!userConfirmed) return;
-
-            const signatureDataURL = canvas.toDataURL("image/png");
-
-            const formData = new FormData();
-            formData.append("name", name);
-            formData.append("email", email);
-            formData.append("confirmation_text", confirmationText);
-            formData.append("signature", signatureDataURL);
-
-            fetch("https://signature-pad-backend.onrender.com/send-email", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => alert(data.message || "Error sending email."))
-            .catch(error => console.error("Error:", error));
-        });
     </script>
 </body>
 </html>
