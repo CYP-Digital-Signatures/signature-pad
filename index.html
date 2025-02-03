@@ -41,6 +41,7 @@
 
         <label for="subcontractor">Sub-Contractor:</label>
         <select id="subcontractor">
+            <option value="" selected disabled>Select a sub-contractor</option>
             <option value="ELM Dry">ELM Dry</option>
             <option value="ELM Wet">ELM Wet</option>
             <option value="ELM PA/EWIS">ELM PA/EWIS</option>
@@ -55,6 +56,7 @@
 
         <label for="shaft">Shaft:</label>
         <select id="shaft">
+            <option value="" selected disabled>Select a shaft</option>
             <option value="Latrobe">Latrobe</option>
             <option value="Little Latrobe">Little Latrobe</option>
             <option value="A'Beckett">A'Beckett</option>
@@ -62,6 +64,7 @@
 
         <label for="level">Level:</label>
         <select id="level">
+            <option value="" selected disabled>Select a level</option>
             <option value="L3">L3</option>
             <option value="L2">L2</option>
             <option value="L1">L1</option>
@@ -78,6 +81,7 @@
 
         <label for="area">Area:</label>
         <select id="area">
+            <option value="" selected disabled>Select an area</option>
             <option value="BOH">BOH</option>
             <option value="FOH">FOH</option>
         </select>
@@ -184,8 +188,8 @@
             const level = document.getElementById("level").value;
             const area = document.getElementById("area").value;
 
-            if (name === "") {
-                alert("Please enter your name.");
+            if (name === "" || subcontractor === "" || shaft === "" || level === "" || area === "") {
+                alert("Please fill out all fields before saving.");
                 return;
             }
 
