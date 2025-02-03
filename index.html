@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signature Capture</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/2.3.2/signature_pad.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/literallycanvas/0.4.14/literallycanvas.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/literallycanvas/0.4.14/literallycanvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,12 +25,9 @@
             width: 100%;
             max-width: 350px;
         }
-        canvas {
-            border: 2px solid black;
+        .literally {
             width: 100%;
             height: 200px;
-            background-color: white;
-            touch-action: none; /* Fixes touch event issues */
         }
     </style>
 </head>
@@ -37,11 +35,9 @@
     <div class="container">
         <h2>Signature Capture</h2>
 
-        <!-- Name Input -->
         <label for="name">Full Name:</label>
         <input type="text" id="name" placeholder="Enter your name" required>
 
-        <!-- Dropdown Menus -->
         <label for="subcontractor">Sub-Contractor:</label>
         <select id="subcontractor">
             <option value="Company A">Company A</option>
@@ -64,36 +60,22 @@
         </select>
 
         <h3>Sign Below:</h3>
-        <canvas id="signature-pad"></canvas>
+        <div class="literally" id="signature-pad"></div>
         <button id="clear">Clear</button>
         <button id="save">Save Signature</button>
     </div>
 
     <script>
-        // Fix canvas sizing and touch issues
-        const canvas = document.getElementById("signature-pad");
-        const resizeCanvas = () => {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = 200 * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-        };
-
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-
-        // Initialize Signature Pad
-        const signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'white', // Ensures background is white
-            penColor: 'black' // Ink color
+        const lc = LC.init(document.getElementById("signature-pad"), {
+            imageURLPrefix: "https://cdnjs.cloudflare.com/ajax/libs/literallycanvas/0.4.14/img",
+            backgroundColor: "white",
+            strokeWidth: 2
         });
 
-        // Clear Button
-        document.getElementById("clear").addEventListener("click", () => signaturePad.clear());
+        document.getElementById("clear").addEventListener("click", () => lc.clear());
 
-        // Save Button
         document.getElementById("save").addEventListener("click", () => {
-            if (signaturePad.isEmpty()) {
+            if (lc.getImage().width === 0) {
                 alert("Please provide a signature first.");
                 return;
             }
@@ -108,12 +90,10 @@
                 return;
             }
 
-            // Convert signature to PNG
-            const signatureDataURL = signaturePad.toDataURL("image/png");
-
-            // Create a downloadable file
+            // Get the signature as an image
+            const dataURL = lc.getImage().toDataURL();
             const a = document.createElement("a");
-            a.href = signatureDataURL;
+            a.href = dataURL;
             a.download = `signature_${name}_${subcontractor}_${level}_${area}.png`;
             document.body.appendChild(a);
             a.click();
