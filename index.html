@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signature Capture</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/2.3.2/signature_pad.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/2.3.2/signature_pad.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,17 +14,22 @@
         .container {
             max-width: 400px;
             margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        input, select, button {
+        label, input, select, button {
             margin: 10px;
             padding: 10px;
             width: 100%;
+            max-width: 350px;
         }
         canvas {
             border: 2px solid black;
             width: 100%;
             height: 200px;
-            touch-action: none; /* Ensures signature works on touch screens */
+            background-color: white;
+            touch-action: none; /* Fixes touch event issues */
         }
     </style>
 </head>
@@ -33,7 +38,7 @@
         <h2>Signature Capture</h2>
 
         <!-- Name Input -->
-        <label for="name">Your Name:</label>
+        <label for="name">Full Name:</label>
         <input type="text" id="name" placeholder="Enter your name" required>
 
         <!-- Dropdown Menus -->
@@ -65,27 +70,40 @@
     </div>
 
     <script>
-        // Initialize the signature pad
+        // Fix canvas sizing and touch issues
         const canvas = document.getElementById("signature-pad");
-        const signaturePad = new SignaturePad(canvas);
+        const resizeCanvas = () => {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = 200 * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        };
 
-        // Clear signature
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        // Initialize Signature Pad
+        const signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'white', // Ensures background is white
+            penColor: 'black' // Ink color
+        });
+
+        // Clear Button
         document.getElementById("clear").addEventListener("click", () => signaturePad.clear());
 
-        // Save signature
+        // Save Button
         document.getElementById("save").addEventListener("click", () => {
             if (signaturePad.isEmpty()) {
                 alert("Please provide a signature first.");
                 return;
             }
 
-            // Get user input values
             const name = document.getElementById("name").value.trim();
             const subcontractor = document.getElementById("subcontractor").value;
             const level = document.getElementById("level").value;
             const area = document.getElementById("area").value;
 
-            if (!name) {
+            if (name === "") {
                 alert("Please enter your name.");
                 return;
             }
