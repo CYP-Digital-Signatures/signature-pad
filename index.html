@@ -95,7 +95,6 @@
             <option value="FOH">FOH</option>
         </select>
 
-        <!-- Confirmation Message (Above Signature Pad) -->
         <p id="confirmation-message"></p>
 
         <h3>Sign Below:</h3>
@@ -105,6 +104,52 @@
     </div>
 
     <script>
+        const canvas = document.getElementById("signature-pad");
+        const ctx = canvas.getContext("2d");
+
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 200;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        function startDrawing(event) {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(event.offsetX, event.offsetY);
+        }
+
+        function draw(event) {
+            if (!isDrawing) return;
+            ctx.lineTo(event.offsetX, event.offsetY);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.lineCap = "round";
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseout", stopDrawing);
+
+        document.getElementById("clear").addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+
         document.getElementById("save").addEventListener("click", async () => {
             const name = document.getElementById("name").value.trim();
             const email = document.getElementById("email").value.trim();
@@ -126,7 +171,7 @@
             const userConfirmed = confirm(`CONFIRM SUBMISSION:\n\n${confirmationText}\n\nClick OK to proceed or Cancel to abort.`);
             if (!userConfirmed) return;
 
-            const signatureDataURL = document.getElementById("signature-pad").toDataURL("image/png");
+            const signatureDataURL = canvas.toDataURL("image/png");
 
             const formData = new FormData();
             formData.append("name", name);
@@ -139,7 +184,13 @@
                 body: formData
             })
             .then(response => response.json())
-            .then(data => alert(data.message || "Error sending email."))
+            .then(data => {
+                if (data.error) {
+                    alert("Error: " + data.error);
+                } else {
+                    alert("Signature emailed successfully!");
+                }
+            })
             .catch(error => console.error("Error:", error));
         });
     </script>
