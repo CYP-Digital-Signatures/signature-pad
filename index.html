@@ -89,7 +89,7 @@
         <h3>Sign Below:</h3>
         <canvas id="signature-pad"></canvas>
         <button id="clear">Clear</button>
-        <button id="save">Save Signature</button>
+        <button id="save">Send Signature</button>
     </div>
 
     <script>
@@ -181,7 +181,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         });
 
-        document.getElementById("save").addEventListener("click", () => {
+        document.getElementById("save").addEventListener("click", async () => {
             const name = document.getElementById("name").value.trim();
             const subcontractor = document.getElementById("subcontractor").value;
             const shaft = document.getElementById("shaft").value;
@@ -189,20 +189,30 @@
             const area = document.getElementById("area").value;
 
             if (name === "" || subcontractor === "" || shaft === "" || level === "" || area === "") {
-                alert("Please fill out all fields before saving.");
+                alert("Please fill out all fields before sending.");
                 return;
             }
 
-            // Convert canvas to image
-            const dataURL = canvas.toDataURL("image/png");
+            // Convert signature to Base64 PNG
+            const signatureDataURL = canvas.toDataURL("image/png");
 
-            // Create a downloadable file
-            const a = document.createElement("a");
-            a.href = dataURL;
-            a.download = `signature_${name}_${subcontractor}_${shaft}_${level}_${area}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // Create form data
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("subcontractor", subcontractor);
+            formData.append("shaft", shaft);
+            formData.append("level", level);
+            formData.append("area", area);
+            formData.append("signature", signatureDataURL);
+
+            // Send the data to Render API
+            fetch("https://signature-pad-backend.onrender.com/send-email", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message || "Error sending email."))
+            .catch(error => console.error("Error:", error));
         });
     </script>
 </body>
