@@ -28,7 +28,7 @@
             width: 100%;
             height: 200px;
             background-color: white;
-            touch-action: none; /* Prevents scrolling while signing */
+            touch-action: none;
         }
         #confirmation-message {
             margin-top: 15px;
@@ -111,10 +111,9 @@
         let isDrawing = false;
 
         function resizeCanvas() {
-            const scale = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * scale;
-            canvas.height = 200 * scale;
-            ctx.scale(scale, scale);
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
@@ -124,11 +123,11 @@
             let x, y;
 
             if (event.touches) {
-                x = (event.touches[0].clientX - rect.left) * (canvas.width / rect.width);
-                y = (event.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+                x = event.touches[0].clientX - rect.left;
+                y = event.touches[0].clientY - rect.top;
             } else {
-                x = (event.clientX - rect.left) * (canvas.width / rect.width);
-                y = (event.clientY - rect.top) * (canvas.height / rect.height);
+                x = event.clientX - rect.left;
+                y = event.clientY - rect.top;
             }
 
             return { x, y };
@@ -162,7 +161,7 @@
         window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
 
-        // Mouse Events
+        // Mouse Events (Desktop)
         canvas.addEventListener("mousedown", startDrawing);
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", stopDrawing);
