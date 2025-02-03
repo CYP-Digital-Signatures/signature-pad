@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signature Capture</title>
+    <title>CYP Online Area Sign Off</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +40,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Signature Capture</h2>
+        <h2>CYP Online Area Sign Off</h2>
 
         <label for="name">Full Name:</label>
         <input type="text" id="name" placeholder="Enter your name" required>
@@ -93,6 +93,8 @@
             <option value="" selected disabled>Select an area</option>
             <option value="BOH">BOH</option>
             <option value="FOH">FOH</option>
+            <option value="Western Risers">Western Risers</option>
+            <option value="Eastern Riser">Eastern Riser</option>
         </select>
 
         <p id="confirmation-message"></p>
@@ -111,17 +113,17 @@
 
         function getCoordinates(event) {
             const rect = canvas.getBoundingClientRect();
+            let x, y;
+
             if (event.touches) {
-                return {
-                    x: event.touches[0].clientX - rect.left,
-                    y: event.touches[0].clientY - rect.top
-                };
+                x = event.touches[0].clientX - rect.left;
+                y = event.touches[0].clientY - rect.top;
             } else {
-                return {
-                    x: event.clientX - rect.left,
-                    y: event.clientY - rect.top
-                };
+                x = event.clientX - rect.left;
+                y = event.clientY - rect.top;
             }
+
+            return { x, y };
         }
 
         function startDrawing(event) {
@@ -149,32 +151,17 @@
             ctx.closePath();
         }
 
-        // Mouse Events (Desktop)
+        // Mouse Events
         canvas.addEventListener("mousedown", startDrawing);
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", stopDrawing);
         canvas.addEventListener("mouseout", stopDrawing);
 
         // Touch Events (Mobile)
-        canvas.addEventListener("touchstart", (event) => {
-            event.preventDefault();
-            startDrawing(event);
-        });
-
-        canvas.addEventListener("touchmove", (event) => {
-            event.preventDefault();
-            draw(event);
-        });
-
-        canvas.addEventListener("touchend", (event) => {
-            event.preventDefault();
-            stopDrawing(event);
-        });
-
-        canvas.addEventListener("touchcancel", (event) => {
-            event.preventDefault();
-            stopDrawing(event);
-        });
+        canvas.addEventListener("touchstart", startDrawing, { passive: false });
+        canvas.addEventListener("touchmove", draw, { passive: false });
+        canvas.addEventListener("touchend", stopDrawing, { passive: false });
+        canvas.addEventListener("touchcancel", stopDrawing, { passive: false });
 
         document.getElementById("clear").addEventListener("click", () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -195,20 +182,18 @@
                 return;
             }
 
-            const confirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor} and any subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
+            const popupConfirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor}. Please take into consideration that any subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
 
-            document.getElementById("confirmation-message").innerText = confirmationText;
-            document.getElementById("confirmation-message").style.display = "block";
+            if (!confirm(popupConfirmationText)) return;
 
-            const userConfirmed = confirm(`CONFIRM SUBMISSION:\n\n${confirmationText}\n\nClick OK to proceed or Cancel to abort.`);
-            if (!userConfirmed) return;
+            const emailConfirmationText = `I confirm that all works have been completed on ${shaft} ${level} ${area} by ${subcontractor} and am aware that subsequent permit zone works that require LV spotters will be back-charged to ${subcontractor}.`;
 
             const signatureDataURL = canvas.toDataURL("image/png");
 
             const formData = new FormData();
             formData.append("name", name);
             formData.append("email", email);
-            formData.append("confirmation_text", confirmationText);
+            formData.append("confirmation_text", emailConfirmationText);
             formData.append("signature", signatureDataURL);
 
             fetch("https://signature-pad-backend.onrender.com/send-email", {
