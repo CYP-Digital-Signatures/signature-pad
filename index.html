@@ -41,23 +41,45 @@
 
         <label for="subcontractor">Sub-Contractor:</label>
         <select id="subcontractor">
-            <option value="Company A">Company A</option>
-            <option value="Company B">Company B</option>
-            <option value="Company C">Company C</option>
+            <option value="ELM Dry">ELM Dry</option>
+            <option value="ELM Wet">ELM Wet</option>
+            <option value="ELM PA/EWIS">ELM PA/EWIS</option>
+            <option value="Ellis">Ellis</option>
+            <option value="Brolec">Brolec</option>
+            <option value="Nilsen LV">Nilsen LV</option>
+            <option value="Nilsen Comms">Nilsen Comms</option>
+            <option value="Decon">Decon</option>
+            <option value="Securitas">Securitas</option>
+            <option value="Schindler">Schindler</option>
+        </select>
+
+        <label for="shaft">Shaft:</label>
+        <select id="shaft">
+            <option value="Latrobe">Latrobe</option>
+            <option value="Little Latrobe">Little Latrobe</option>
+            <option value="A'Beckett">A'Beckett</option>
         </select>
 
         <label for="level">Level:</label>
         <select id="level">
-            <option value="Level 1">Level 1</option>
-            <option value="Level 2">Level 2</option>
-            <option value="Level 3">Level 3</option>
+            <option value="L3">L3</option>
+            <option value="L2">L2</option>
+            <option value="L1">L1</option>
+            <option value="GF">GF</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="B3">B3</option>
+            <option value="B4">B4</option>
+            <option value="B5">B5</option>
+            <option value="B6">B6</option>
+            <option value="B7">B7</option>
+            <option value="B8">B8</option>
         </select>
 
         <label for="area">Area:</label>
         <select id="area">
-            <option value="Area A">Area A</option>
-            <option value="Area B">Area B</option>
-            <option value="Area C">Area C</option>
+            <option value="BOH">BOH</option>
+            <option value="FOH">FOH</option>
         </select>
 
         <h3>Sign Below:</h3>
@@ -158,6 +180,7 @@
         document.getElementById("save").addEventListener("click", () => {
             const name = document.getElementById("name").value.trim();
             const subcontractor = document.getElementById("subcontractor").value;
+            const shaft = document.getElementById("shaft").value;
             const level = document.getElementById("level").value;
             const area = document.getElementById("area").value;
 
@@ -172,7 +195,7 @@
             // Create a downloadable file
             const a = document.createElement("a");
             a.href = dataURL;
-            a.download = `signature_${name}_${subcontractor}_${level}_${area}.png`;
+            a.download = `signature_${name}_${subcontractor}_${shaft}_${level}_${area}.png`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
