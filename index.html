@@ -82,15 +82,25 @@
         window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
 
+        function getCanvasCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
         function startDrawing(event) {
             isDrawing = true;
+            const { x, y } = getCanvasCoordinates(event);
             ctx.beginPath();
-            ctx.moveTo(event.offsetX, event.offsetY);
+            ctx.moveTo(x, y);
         }
 
         function draw(event) {
             if (!isDrawing) return;
-            ctx.lineTo(event.offsetX, event.offsetY);
+            const { x, y } = getCanvasCoordinates(event);
+            ctx.lineTo(x, y);
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
             ctx.lineCap = "round";
@@ -102,27 +112,41 @@
             ctx.closePath();
         }
 
+        // Mouse Events
         canvas.addEventListener("mousedown", startDrawing);
         canvas.addEventListener("mousemove", draw);
         canvas.addEventListener("mouseup", stopDrawing);
         canvas.addEventListener("mouseout", stopDrawing);
 
-        // Enable drawing on touch devices
-        canvas.addEventListener("touchstart", (event) => {
+        // Touch Events (Fixes Offset Issue)
+        function getTouchCoordinates(event) {
             const touch = event.touches[0];
-            const mouseEvent = new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY });
-            canvas.dispatchEvent(mouseEvent);
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            isDrawing = true;
+            const { x, y } = getTouchCoordinates(event);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
         });
 
         canvas.addEventListener("touchmove", (event) => {
-            const touch = event.touches[0];
-            const mouseEvent = new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY });
-            canvas.dispatchEvent(mouseEvent);
+            event.preventDefault();
+            if (!isDrawing) return;
+            const { x, y } = getTouchCoordinates(event);
+            ctx.lineTo(x, y);
+            ctx.stroke();
         });
 
         canvas.addEventListener("touchend", () => {
-            const mouseEvent = new MouseEvent("mouseup", {});
-            canvas.dispatchEvent(mouseEvent);
+            isDrawing = false;
+            ctx.closePath();
         });
 
         document.getElementById("clear").addEventListener("click", () => {
